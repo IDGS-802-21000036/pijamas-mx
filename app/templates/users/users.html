@@ -1,0 +1,104 @@
+{% extends 'layout.html' %}
+{% from "_macros.html" import render_field %}
+{% block content %}
+<div class="container-fluid p-3">
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Usuarios</h1>
+    </div>
+    <hr>
+    <div class="col-6">
+      <button type="button" class="btn btn-primary" id="addUser">
+        Agregar usuario
+      </button>
+    </div>
+    <div class="col-6">
+      <form method="POST" action="{{ url_for('users.index') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="container">
+          <div class="row d-flex justify-content-center">
+            <div class="col-6 form-check">
+              <input class="form-check-input" type="radio" name="status" id="active" value="1" {{ 'checked' if status == '1' else '' }}>
+              <label class="form-check-label" for="active">
+                Activos
+              </label>
+            </div>
+            <div class="col-6 form-check">
+              <input class="form-check-input" type="radio" name="status" id="inactive" value="0" {{ 'checked' if status == '0' else '' }}>
+              <label class="form-check-label" for="inactive">
+                Inactivos
+              </label>
+            </div>
+            <div class="col-12 d-flex justify-content-center">
+              <button type="submit" class="btn btn-primary">Actualizar</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-11">
+      <table id="tblUser" class="table table-striped responsive nowrap" style="width:100%">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Modificar</th>
+            <th>Eliminar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr data-id="{{ u.id }}">
+            <td>{{ u.usuario }}</td>
+            <td>{{ u.correo }}</td>
+            <td>{{ u.rol_id }}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="editUser('{{ u.id }}')">Modificar</button>
+            </td>
+            <td>
+              {% if u.status == 0 %}
+              <form method="POST" action="{{ url_for('users.activate') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="id" value="{{ u.id }}" id="id">
+                <button type="submit" class="btn btn-success btn-sm confirm-submit">Activar</button>
+              </form>
+              {% else %}
+              <form method="POST" action="{{ url_for('users.delete') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="id" value="{{ u.id }}" id="id">
+                <button type="submit" class="btn btn-danger btn-sm confirm-submit">Eliminar</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <br>
+
+  <form id="hiddenForm" method="POST" action="{{ url_for('users.save') }}" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="id" id="hiddenId">
+    {{ render_field(form.id, class="form-control", type="hidden") }}
+    {{ render_field(form.usuario, class="form-control", type="hidden") }}
+    {{ render_field(form.correo, class="form-control", type="hidden") }}
+    {{ render_field(form.contrasenia, class="form-control", type="hidden") }}
+    {{ render_field(form.rol_id, class="form-control", type="hidden") }}
+  </form>
+</div>
+<div style="display: none;">
+  <select class="form-control mb-3" name="roles" id="select_rol" placeholder="Selecciona un rol">
+    <option value="0">Selecciona un Rol</option>
+    {% for r in roles %}
+    <option value="{{ r.id }}">{{ r.rol }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<script src="../static/js/user.js"></script>
+{% endblock %}

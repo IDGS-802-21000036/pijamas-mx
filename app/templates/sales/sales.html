@@ -1,0 +1,253 @@
+{% extends 'layout.html' %}
+{%from "_macros.html" import render_field%}
+{%block content%}
+
+<div class="container-fluid p-3">
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Ventas</h1>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-6">
+        <div class="row">
+          <div class="col-6">
+          </div>
+        </div>
+      </div>
+      <div class="col-6 d-flex justify-content-end">
+        <div>
+          <button type="button" class="btn btn-success" id="verSolicitudes">
+            Solicitudes de Producción
+          </button>
+          <button type="button" class="btn btn-success" id="verProducciones">
+            Lista de Producción
+          </button>
+          <button type="button" class="btn btn-success" id="verVentas">
+            Lista de Ventas
+          </button>
+        </div>
+      </div>
+    </div>
+    <br>
+    <br>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12 col-lg-7 mb-3">
+          <div class="bg-light p-3">
+            <form action="{{ url_for('sales.save_sale') }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <h2>Vender galleta</h2>
+              <label for="">Selecciona una galleta</label>
+              <select class="form-control mb-3" name="id_galleta" id="select_galletas"
+                placeholder="Selecciona una galleta">
+                <option value="0">Selecciona una galleta</option>
+                {% for g in galletas %}
+                <option value="{{ g.id }}">{{ g.nombre_galleta }}</option>
+                {% endfor %}
+              </select>
+              <label for="">Selecciona una unidad de medida</label>
+              <select class="form-control" name="unidad" id="selectUnidad">
+                <option value="pz">Pieza (pz)</option>
+                <option value="kg">Kilogramo (kg)</option>
+              </select>
+              <label for="">Cantidad</label>
+              <input type="number" class="form-control mb-3" name="cantidad" id="quantity" placeholder="Cantidad">
+              <button type="submit" class="btn btn-primary">Agregar</button>
+            </form>
+          </div>
+
+          <div class="bg-light p-3 mt-3" style="height: 50vh;">
+            <h2>Productos agregados</h2>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Unidad</th>
+                  <th>Cantidad</th>
+                  <th>Precio Unitario</th>
+                  <th>Subtotal</th>
+                  <th>Acciones</th>
+
+                </tr>
+              </thead>
+              <tbody>
+                {% for sale_id, sale_data in sales_data.items() %}
+                <tr>
+                  <td>{{ sale_data['nombre_galleta'] }}</td>
+                  <td>{{ sale_data['unidad'] }}</td>
+                  <td>{{ sale_data['cantidad'] }}</td>
+                  <td>{{ sale_data['precio_unitario'] }}</td>
+                  <td>{{ sale_data['subtotal'] }}</td>
+                  <td>
+                    <form action="{{ url_for('sales.sales_delete') }}" method="post">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="id" value="{{sale_id}}">
+                      <button type="submit" class="btn btn-primary btn-sm">
+                        Eliminar
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <button id="confirmar_venta" class="btn btn-primary">Finalizar venta</button>
+            <form id="venta_form" action="{{ url_for('sales.generate_sale') }}" method="post" style="display: none;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            </form>
+          </div>
+        </div>
+        <div class="col-md-12 col-lg-5">
+          <div class="bg-light p-3 mb-3" style="height: 60vh;">
+            <h2>Resumen</h2>
+            <table class="table table-striped">
+              <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Unidad</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for sale_id, sale_data in sales_data.items() %}
+              <tr>
+                <td>{{ sale_data['nombre_galleta'] }}</td>
+                <td>{{ sale_data['unidad'] }}</td>
+                <td>{{ sale_data['cantidad'] }}</td>
+                <td>{{ sale_data['precio_unitario'] }}</td>
+                <td>{{ sale_data['subtotal'] }}</td>
+              </tr>
+              {% endfor %}
+              <tr>
+                <td colspan="4" style="text-align: right;"><strong>Total:</strong></td>
+                <td>
+                  {{ total }}
+                </td>
+              </tr>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div style="display: none;">
+    <form id="solicitudForm" method="POST" action="{{ url_for('sales.production_request') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="id" id="id_solicitud">
+      <input type="hidden" name="id_usuario" id="id_usuario">
+      <input type="hidden" name="id_receta" id="id_receta">
+    </form>
+    <select class="form-control mb-3" name="RECETAS" id="select_recetas" placeholder="Selecciona una receta">
+      <option value="0">Selecciona una receta</option>
+      {% for r in recetas %}
+      <option value="{{ r.id }}">{{ r.nombre_receta }}</option>
+      {% endfor %}
+    </select>
+    <table id="tblSolicitudes" class="table table-striped responsive nowrap" style="width:100%">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Receta</th>
+          <th>Fecha solicitud</th>
+          <th>Status</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%for solicitud in solicitudes%}
+        <tr data-id="{{solicitud.id}}">
+          <td>{{solicitud.usuario}}</td>
+          <td>{{solicitud.nombre_receta}}</td>
+          <td>{{solicitud.fecha}}</td>
+          <td>
+            {% if solicitud.status == 0 %}
+            En espera
+            {% elif solicitud.status == 1 %}
+            Aceptada
+            {% elif solicitud.status == 2 %}
+            Rechazada
+            {% elif solicitud.status == 3 %}
+            Cancelada
+            {% else %}
+            Estado desconocido
+            {% endif %}
+          </td>
+          <td>
+            {% if solicitud.status == 0 %}
+            <form action="{{ url_for('sales.update_status') }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="id" value="{{solicitud.id}}">
+              <input type="hidden" name="status" value="3">
+              <button type="submit" class="btn btn-info btn-sm" id="">
+                Cancelar
+              </button>
+            </form>
+            {% endif %}
+          </td>
+          {%endfor%}
+      </tbody>
+    </table>
+<table id="tblVentas" class="table table-striped responsive nowrap" style="width:100%">
+  <thead>
+    <th>Nombre Usuario</th>
+    <th>Total</th>
+    <th>Fecha de Venta</th>
+  </thead>
+  <tbody>
+    {%for venta in ventas%}
+    <tr>
+      <td>{{venta.user.usuario}}</td>
+      <td>{{venta.total}}</td>
+      <td>{{venta.fecha_venta}}</td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+    <table id="tblProduction" class="table table-striped responsive nowrap" style="width:100%">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Cantidad Producida</th>
+          <th>Fecha de Produccion</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%for production in productions%}
+        <tr data-id="{{production.id}}">
+          <td>{{production.receta.nombre_receta}}</td>
+          <td>{{production.cantidad_producida}}</td>
+          <td>{{ production.fecha_produccion if production.fecha_produccion != '0000-00-00 00:00:00' else 'En espera de
+            producción' }}</td>
+          <td>
+            {% if production.status == 0 %}
+            En espera
+            {% elif production.status == 1 %}
+            En produccion
+            {% elif production.status == 2 %}
+            En horno
+            {% elif production.status == 3 %}
+            Listo para entrega
+            {% elif production.status == 4 %}
+            Entregado
+            {% else %}
+            Estado desconocido
+            {% endif %}
+          </td>
+        </tr>
+        {%endfor%}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="../static/js/sales.js"></script>
+{%endblock%}

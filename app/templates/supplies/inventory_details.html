@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+{%from "_macros.html" import render_field%}
+{%block content%}
+<div class="container-fluid p-3">
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Inventario de {{supply.nombre}}</h1>
+    </div>
+    <hr>
+    <div class="col-11">
+      <table id="tblInventory" class="table table-striped responsive nowrap"
+        style="width:100%">
+        <thead>
+          <tr>
+            <th>Cantidad en almacen ({{unity}})</th>
+            <th>Lote</th>
+            <th>Fecha de caducidad</th>
+            <th>Merma</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <br>
+</div>
+<form id="hiddenForm" method="POST" action="{{url_for('inventory.merma')}}" style="display: none;">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+  {{render_field(form.id_materia_prima, class="form-control", type="hidden")}}
+  {{render_field(form.cantidad, class="form-control", type="hidden")}}
+  {{render_field(form.comentario, class="form-control", type="hidden")}}
+  {{render_field(form.lote, class="form-control", type="hidden")}}
+  {{render_field(form.fecha, class="form-control", type="hidden")}}
+  {{render_field(form.unidad_medida, class="form-control", type="hidden")}}
+</form>
+<div id='inventoryData' data-inventory='{{ inventory | safe}}' data-unity='{{unity}}' data-id="{{supply.id}}"></div>
+<script src="../static/js/inventory.js"></script>
+{%endblock%}

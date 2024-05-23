@@ -1,0 +1,54 @@
+{% extends 'layout.html' %}
+{%from "_macros.html" import render_field%}
+{%block content%}
+<div class="container-fluid p-3">
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Insumos</h1>
+    </div>
+    <hr>
+    {%if add%}
+      <div class="col-12 d-flex justify-content-end">
+        <button id="addSupplyButton" class="btn btn-primary">Agregar insumo <i class="fa-solid fa-plus"></i></button>
+      </div>
+    {%endif%}
+    <div class="col-11">
+      <table id="tblSupply" class="table table-striped responsive nowrap"
+        style="width:100%">
+        <thead>
+          <tr>
+            <th>nombre</th>
+            <th>descripcion</th>
+            <th>stock</th>
+            <th>Inventario</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%for supply in supplies%}
+          <tr data-id="{{supply.id}}">
+            <td>{{supply.nombre}}</td>
+            <td>{{supply.descripcion}}</td>
+            <td>{{supply.stock}} {{supply.unidad_medida}}</td>
+            <td>
+                
+                <a class="btn btn-primary" href="{{url_for('inventory.inventory_details', id = supply.id)}}"><i class="fas fa-list"></i></a></td>
+          </tr>
+          {%endfor%}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <br>
+</div>
+<form id="hiddenForm" method="POST" action="{{url_for('supplies.save')}}" style="display: none;">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+  <input type="hidden" name="id" id="hiddenId">
+  {{render_field(form.nombre, class="form-control", type="hidden")}}
+  {{render_field(form.descripcion, class="form-control", type="hidden")}}
+  {{render_field(form.min_stock, class="form-control", type="hidden")}}
+  {{render_field(form.max_stock, class="form-control", type="hidden")}}
+  {{render_field(form.unidad_medida, class="form-control", type="hidden")}}
+</form>
+<script src="../static/js/supply.js"></script>
+{%endblock%}

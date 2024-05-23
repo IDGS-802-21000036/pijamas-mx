@@ -1,0 +1,145 @@
+{% extends 'layout.html' %}
+{% from "_macros.html" import render_field %}
+{% block content %}
+<div class="container-fluid p-3">
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Recetas</h1>
+    </div>
+    <hr>
+    <div class="col-6">
+      <button type="button" class="btn btn-primary" id="addReceta" data-galletas="{{ galletas }}">Agregar receta</button>
+    </div>
+    <div class="col-6">
+      <form method="POST" action="{{ url_for('recetas.index') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="container">
+          <div class="row d-flex justify-content-center">
+            <div class="col-6 form-check">
+              <input class="form-check-input" type="radio" name="status" id="active" value="1" {{ 'checked' if status == '1' else '' }}>
+              <label class="form-check-label" for="active">
+                Activos
+              </label>
+            </div>
+            <div class="col-6 form-check">
+              <input class="form-check-input" type="radio" name="status" id="inactive" value="0" {{ 'checked' if status == '0' else '' }}>
+              <label class="form-check-label" for="inactive">
+                Inactivos
+              </label>
+            </div>
+            <div class="col-12 d-flex justify-content-center">
+              <button type="submit" class="btn btn-primary">Actualizar</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-11">
+      <table id="tblReceta" class="table table-striped responsive nowrap" style="width:100%">
+        <thead>
+          <tr>
+            <th>Nombre </th>
+            <th>Descripcion </th>
+            <th>Galleta</th>
+            <th>Cantidad</th>
+            <th>Modificar</th>
+            <th>Eliminar</th>
+            <th>Ingredientes</th>
+            <th>Detalles</th>
+
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recetas %}
+          <tr data-id="{{ r.id }}">
+            <td>{{ r.nombre_receta}}</td>
+            <td>{{ r.descripcion}}</td>
+            <td value="{{ r.id_galleta }}">{{ r.galleta.nombre_galleta }}</td>
+            <td>{{ r.cantidad_produccion }}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="editReceta('{{ r.id }}')">Modificar</button>
+            </td>
+            <td>
+              {% if r.status == 0 %}
+              <form method="POST" action="{{ url_for('recetas.activate') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="id" value="{{ r.id }}" id="activate_{{ r.id }}">
+                <button type="submit" class="btn btn-success btn-sm confirm-submit">Activar</button>
+              </form>
+              {% else %}
+              <form method="POST" action="{{ url_for('recetas.delete') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="id" value="{{ r.id }}" id="delete_{{ r.id }}"> 
+                <button type="submit" class="btn btn-danger btn-sm confirm-submit">Eliminar</button>
+              </form>
+              {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-primary btn-sm" data-id="{{ r.id }}"  onclick="addIngredientesEnBucle('{{ r.id }}')">Agregar Ingredientes</button>
+            </td>
+            <td>
+              <button class="btn btn-primary btn-sm ver-detalles" data-id-receta="{{ r.id }}" >Ver detalles</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <table id="tblDetallesReceta" class="table table-striped responsive nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th>Materia Prima</th>
+                <th>Cantidad</th>
+                <th>ID Receta</th> <!-- Nueva columna -->
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se agregarán dinámicamente los detalles de la receta -->
+        </tbody>
+    </table>
+    
+    </div>
+    <div class="col-12 d-flex justify-content-center">
+      <button type="button" class="btn btn-primary" id="finalizar">Finalizar</button>
+    </div>
+ 
+  </div>
+
+  <br>
+
+  <form id="hiddenForm" method="POST" action="{{ url_for('recetas.save') }}" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="id" id="hiddenId">
+    <input type="hidden" name="nombre_receta" id="nombre_receta">
+    <input type="hidden" name="descripcion" id="descripcion">
+    <input type="hidden" name="galleta" id="id_galleta">
+    <input type="hidden" name="cantidad_produccion" id="cantidad_produccion">
+  </form>
+  <form id="formDetallesReceta" method="POST" action="{{ url_for('recetas.save_detalles') }}" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="id_receta" id="id_receta">
+    <input type="hidden" name="detalles_receta" id="detalles_receta">
+</form>
+
+
+<form id="formVerDetallesReceta" method="POST"  style="display: none;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="id_receta" id="id_receta_form">
+</form>
+
+</div>
+
+<script>
+  var galletas = {{ galletas | tojson }};
+  var materias = {{ materias | tojson }};
+  var detalles_json = {{ detalles_json | tojson }};
+</script>
+
+<script src="../static/js/recetas.js"></script>
+{% endblock %}

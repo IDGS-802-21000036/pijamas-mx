@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+{% from "_macros.html" import render_field %}
+
+{% block content %}
+
+<div class="container">
+    <h1>Dashboard</h1>
+    <hr>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">Ventas por dia</h2>
+                    <canvas id="graficaVentas"></canvas>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">Galletas vendidas</h2>
+                    <canvas id="graficaGalletas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../static/js/dashboard.js"></script>
+
+<script>
+    var ventasDia = {{ ventasDia | tojson }};
+    var galletaVendida = {{ galletaVendida | tojson }};
+</script>
+
+{% endblock %}

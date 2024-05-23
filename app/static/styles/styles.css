@@ -1,0 +1,7 @@
+.input-error {
+    border-color: red;
+}
+.swal-wide{
+    width:950px !important;
+    height: 400px;
+}

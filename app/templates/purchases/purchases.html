@@ -1,0 +1,153 @@
+{% extends 'layout.html' %}
+{% from "_macros.html" import render_field %}
+{% block content %}
+<div class="container-fluid p-3">
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Compras</h1>
+    </div>
+    <hr>
+    {%if add%}
+      <div class="col-6">
+        <button type="button" class="btn btn-primary" id="addPurchaseButton">
+          Registrar Compra
+        </button>
+      </div>
+    {%endif%}
+    <div class="card col-11">
+      <div class="card-header" id="headingOne">
+        <h5 class="mb-0">
+          <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#purchasesCard"
+            aria-expanded="true" aria-controls="purchasesCard">
+            Compras
+          </button>
+          <div id='selectedPurchase'>
+            <h5 class="card-title"></h5>
+            <p class="card-text"></p>
+          </div>
+        </div>
+      <div id="purchasesCard" class="collapse show" aria-labelledby="headingOne">
+        <div class="card-body">
+            <table id="tblPurchasesHeader" class="table table-striped responsive nowrap" style="width:100%">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Proveedor</th>
+                  <th>Fecha</th>
+                  <th>Total</th>
+                  <th>Detalles</th>
+                </tr>
+              </thead>
+              <tbody id="tblDataPurchaseHeader">
+                {% for purchase in purchases %}
+                <tr data-id="{{ purchase.header.id }}">
+                  <td>{{ purchase.header.usuario }}</td>
+                  <td>{{ purchase.header.proveedor }}</td>
+                  <td>{{ purchase.header.fecha }}</td>
+                  <td>{{ purchase.header.total }}</td>
+                  <td>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="viewDetails({{purchase.header.id}})">
+                      <i class="fa-solid fa-bars"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <br>
+
+      </div>
+    </div>
+    <br>
+ 
+    <br>
+    <br>
+      <h2>Detalles</h2>
+      <hr>
+
+    <div class="col-11">
+      <table id="tblPurchasesDetails" class="table table-striped responsive nowrap" style="width:100%">
+        <thead>
+          <tr>
+            <th>Insumo</th>
+            <th>Contenido por unidad</th>
+            <th>Unidad de medida</th>
+            <th>Cantidad</th>
+            <th>Precio del lote</th>
+          </tr>
+        </thead>
+        <tbody id="tblDataPurchaseDetail">
+
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+  <br>
+</div>
+<form id="hiddenForm" method="POST" action="{{url_for('purchases.save')}}" style="display: none;">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+  {{ render_field(form.proveedor_id, id = "hiddenProveedor_id") }}
+  {{ render_field(form.total, id = "hiddenTotal") }}
+  {{ render_field(form.fecha, id = "hiddenFecha") }}
+  {{ render_field(form.detalles, id = "hiddenDetalles") }}
+</form>
+<div id="supplierData" data-suppliers='{{ suppliers | safe }}'></div>
+<div id="supplyData" data-supplies='{{ supplies | safe }}'></div>
+<div id="purchaseData" data-purchases='{{ purchases | safe }}'></div>
+
+<script src="../static/js/purchases/purchases.js"></script>
+<script>
+  function viewDetails(id) {
+    console.log(id);
+    const purchases = {{ purchases | tojson
+  }};
+  console.log(purchases);
+  const purchase = purchases.find(p => p.header.id == id);
+  console.log(purchase)
+  const details = purchase.details;
+  const tblDataPurchaseDetail = document.getElementById('tblDataPurchaseDetail');
+  tblDataPurchaseDetail.innerHTML = '';
+  console.log(details);
+  details.forEach(detail => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+            <td>${detail.materia_prima}</td>
+            <td>${detail.contenido_unidad}</td>
+            <td>${detail.unidad_medida}</td>
+            <td>${detail.cantidad}</td>
+            <td>${detail.precio_lote}</td>
+        `;
+    tblDataPurchaseDetail.appendChild(tr);
+  });
+   // Guarda la compra seleccionada en un atributo de datos de la tarjeta
+   $('#purchasesCard').data('selected', purchase);
+
+  // Destruye la tabla existente y vuelve a inicializarla
+  if ($.fn.DataTable.isDataTable('#tblPurchasesDetail')) {
+    $('#tblPurchasesDetail').DataTable().destroy();
+  }
+  $('#tblPurchasesDetail').DataTable();
+  
+}
+// Agrega un evento de escucha para el evento hide.bs.collapse
+$('#purchasesCard').on('hide.bs.collapse', function () {
+  const purchase = $(this).data('selected');
+  if (purchase) {
+      // Actualiza el contenido de la tarjeta con los detalles de la compra seleccionada
+      $('#selectedPurchase').find('.card-title').text(`Compra #${purchase.header.id}`);
+      $('#selectedPurchase').find('.card-text').text(`Proveedor: ${purchase.header.proveedor},Total: ${purchase.header.total}`);
+  }
+});
+$('#purchasesCard').on('show.bs.collapse', function () {
+  const purchase = $(this).data('selected');
+  if (purchase) {
+      // Actualiza el contenido de la tarjeta con los detalles de la compra seleccionada
+      $('#selectedPurchase').find('.card-title').text("");
+      $('#selectedPurchase').find('.card-text').text("");
+  }
+});
+</script>
+{% endblock %}

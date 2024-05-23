@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+{%from "_macros.html" import render_field%}
+{%block content%}
+<div class="container-fluid p-3">
+
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Proveedores</h1>
+    </div>
+    <hr>
+    {%if add%}
+      <div class="col-6">
+        <button type="button" class="btn btn-primary" id="addSupplierButton">
+          Agregar proveedor
+        </button>
+      </div>
+    {%endif%}
+    <div class="col-6">
+      <form method="POST" action="{{url_for('suppliers.index')}}">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+        <div class="container">
+          <div class="row d-flex justify-content-center">
+            <div class="col-6 form-check">
+              <input class="form-check-input" type="radio" name="status" id="active" value="1" {{ 'checked' if status == '1' else '' }}>
+              <label class="form-check-label" for="active">
+                Activos
+              </label>
+            </div>
+            <div class="col-6 form-check">
+              <input class="form-check-input" type="radio" name="status" id="inactive" value="0" {{ 'checked' if status == '0' else '' }}>
+              <label class="form-check-label" for="inactive">
+                Inactivos
+              </label>
+            </div>
+            <div class="col-12 d-flex justify-content-center">
+              <button type="submit" class="btn btn-primary">Actualizar</button>
+            </div>
+          </div>
+          
+        </div>
+        
+        
+      </form>
+    </div>
+    <div class="col-11">
+      <table id="tblSupplier" class="table table-striped responsive nowrap"
+        style="width:100%">
+        <thead>
+          <tr>
+            <th>nombre</th>
+            <th>RFC</th>
+            <th>correo electronico</th>
+            <th>telefono</th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {%for supplier in suppliers%}
+          <tr data-id="{{supplier.id}}">
+            <td>{{supplier.nombre}}</td>
+            <td>{{supplier.rfc}}</td>
+            <td>{{supplier.correo}}</td>
+            <td>{{supplier.telefono}}</td>
+            <td><button class="btn btn-primary btn-sm"
+                onclick="editSupplier({{supplier.id}})">Modificar</button></td>
+            <td>
+              {% if supplier.status == 0 %}
+              <form method="POST" action="{{url_for('suppliers.activate')}}">
+                <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+                <input type="hidden" name="id" value="{{supplier.id}}" id="id">
+                <button type="submit" class="btn btn-success btn-sm confirm-submit">Activar</button>
+              </form>
+            {% else %}
+              <form method="POST" action="{{url_for('suppliers.delete')}}">
+                <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+                <input type="hidden" name="id" value="{{supplier.id}}" id="id">
+                <button type="submit" class="btn btn-danger btn-sm confirm-submit">Eliminar</button>
+              </form>
+            {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-primary btn-sm"
+                onclick="editSupply({{supplier.id}})">Modificar insumos</button>
+            </td>
+          </tr>
+          {%endfor%}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div id="supplyData" data-supplies='{{ supplies | safe }}'></div>
+  <div id="relationshipData" data-relationships='{{ supplies_list | safe }}'></div>
+  <br>
+
+  <form id="hiddenForm" method="POST" action="{{url_for('suppliers.save')}}" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+    <input type="hidden" name="id" id="hiddenId">
+    {{render_field(form.nombre, class="form-control", type="hidden")}}
+    {{render_field(form.rfc, class="form-control", type="hidden")}}
+    {{render_field(form.correo, class="form-control", type="hidden")}}
+    {{render_field(form.telefono, class="form-control", type="hidden")}}
+  </form>
+
+  <form id="hiddenFormRelationship" method="POST" action="{{url_for('suppliers.save_supplies')}}" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+    {{render_field(supply_details_form.supplier_id, class="form-control", type="hidden")}}
+    {{render_field(supply_details_form.supplies_ids, class="form-control", type="hidden")}}
+  </form>
+</div>
+
+<script src="../static/js/supplier.js"></script>
+{%endblock%}

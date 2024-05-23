@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+{%from "_macros.html" import render_field%}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <title>Login | Sr Galleto</title>
+</head>
+<body style="background-color: #eee;">
+    <!----------------------- Main Container -------------------------->
+     <div class="container d-flex justify-content-center align-items-center min-vh-100">
+	      {%with messages=get_flashed_messages()%}
+            {%if messages %}
+                {%for message in messages%}
+                    <div class="alert alert-success">
+                        {{message}}
+                    </div>
+                {%endfor%}
+            {%endif%}
+        {%endwith%}
+	 
+    <!----------------------- Login Container -------------------------->
+       <div class="row border rounded-5 p-3 bg-white shadow box-area">
+    <!--------------------------- Left Box ----------------------------->
+       <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box" style="background: #76ABAE;">
+           <div class="featured-image mb-3">
+            <img src="../../static/Iconos/logoBlanco.png" class="img-fluid" style="width: 250px;">
+           </div>
+           <p class="text-white fs-2" style="font-family: 'Courier New', Courier, monospace; font-weight: 600;">Be Verified</p>
+       </div> 
+    <!-------------------- ------ Right Box ---------------------------->
+        
+       <div class="col-md-6 right-box">
+          <div class="row  d-flex justify-content-center align-items-center ">
+                <div class="header-text mb-3">
+                     <h2>Bienvenido</h2>
+                     <p>Sir galleto, tu mejor opción.</p>
+                </div>
+                 <form  method="POST" action="{{url_for('auth.login')}}">
+                            <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+                            <div class="input-group mb-3 ">
+                                {{render_field(form.username, class="form-control")}}
+                            </div>
+                            <div class="input-group mb-3 ">
+                                {{render_field(form.password, class="form-control")}}
+                            </div>
+                            <button type="submit" style="color: #88d4d8;" class="btn btn-lg btn-outline-secondary w-100">Iniciar sesión</button>
+                 </form>
+          </div>
+       </div> 
+      </div>
+    </div>
+</body>
+</html>
